@@ -52,6 +52,13 @@ const availableKeyboardHandlers = [
 ]
 const keyboardHandler = ref('ace/keyboard/vscode')
 
+
+const currentTheme = inject('color-theme') as Ref<string>
+const availableThemes = {
+  light: 'ace/theme/xcode',
+  dark: 'ace/theme/twilight',
+}
+
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
@@ -173,7 +180,8 @@ onMounted(() => nextTick(async () => {
       saveCue()
     }
   });
-  editor.setTheme('ace/theme/twilight')
+  const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
+  editor.setTheme(initialTheme)
   editor.setOption('fontFamily', 'Iosevka MakeShift')
   // editor.setOption('fontSpacing', 'Iosevka MakeShift')
   editor.setFontSize(15);
@@ -294,6 +302,17 @@ function fitCodebox() {
     editor.resize()
   }
 }
+
+watch(
+  () => currentTheme.value,
+  (newTheme) => {
+    if (newTheme.match('light') !== null) {
+      editor.setTheme(availableThemes.light)
+    } else {
+      editor.setTheme(availableThemes.dark)
+    }
+  }
+)
 
 watch(
   () => keyboardHandler.value,

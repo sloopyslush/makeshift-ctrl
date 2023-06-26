@@ -15,16 +15,24 @@ import SplitPanelVert from './components/SplitPanelVert.vue'
 import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 import BlocklyBox from './components/BlocklyBox.vue'
+import TesterButton from './components/TesterButton.vue'
 
 type Size = {
 	width: number
 	height: number
 }
 
+const link = document.createElement('link')
+link.rel = 'stylesheet'
+link.href = 'src/styles/test.css'
+// document.head.appendChild(link)
+
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
 const colorTheme = inject('color-theme') as Ref<string>
+
+colorTheme.value = 'colorblind-light-theme'
 
 provide<Ref<string>>('current-session', editorContents)
 
@@ -85,25 +93,28 @@ nextTick(() => {
 
 </script>
 
-<template >
+<template>
 	<div :class="[colorTheme, 'bg-bg', 'color-text']">
 		<div
-		 id='font-size-monitor-div'
-		 ref="FontSizeMonitorDiv"
-		 :class="['absolute', 'invisible']"
+			id='font-size-monitor-div'
+			ref="FontSizeMonitorDiv"
+			:class="['absolute', 'invisible']"
 		>
 			font-size-monitor-text
 		</div>
 		<select
-		 name="color-theme-selector"
-		 v-model="colorTheme"
+			name="color-theme-selector"
+			v-model="colorTheme"
 		>
 			<option value="light-theme">Light</option>
 			<option value="dark-theme">Dark</option>
-
 		</select>
+		<div :class="['width-full']">
+			<TesterButton />
+		</div>
 		<TestInterface />
-		<SplitPanelVert
+		<BlocklyBox />
+		<!-- <SplitPanelVert
 		 :height="clientSize.height - remToPx(2.5)"
 		 :topPanelHeightPercent="70"
 		 :margin="8"
@@ -140,7 +151,7 @@ nextTick(() => {
 			<template #bottom>
 				<Terminal :panelHeight="bottomPanelHeight" />
 			</template>
-		</SplitPanelVert>
+		</SplitPanelVert> -->
 		<BottomBar />
 	</div>
 </template>
@@ -149,20 +160,20 @@ nextTick(() => {
 #app {
 	font-family: Encode Sans, Helvetica, Arial, sans-serif;
 
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	font-weight: 400;
+	// -webkit-font-smoothing: antialiased;
+	// -moz-osx-font-smoothing: grayscale;
+	font-weight: 500;
 
 	// font-size: 12pt;
 	text-align: center;
-	// background-color: rgb(var(--color-bg));
+	background-color: rgb(var(--color-bg));
 	// color: rgb(var(--color-text));
 	display: flex;
 	flex-direction: column;
 	user-select: none;
 	overflow: hidden;
 
-	// transition-duration: 0.2s;
+	transition-duration: 0.2s;
 	height: 100%;
 
 }
@@ -197,7 +208,7 @@ button {
 	cursor: pointer;
 	box-sizing: border-box;
 	background-color: rgb(var(--color-primary));
-	color: rgb(var(--color-bg));
+	color: rgb(var(--color-text-primary-contrast));
 	display: flex;
 
 	font-size: 1rem;
@@ -485,5 +496,4 @@ select {
 	&-blue {
 		border-color: rgb(var(--color-blue));
 	}
-}
-</style>
+}</style>
