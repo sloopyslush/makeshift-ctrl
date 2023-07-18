@@ -54,6 +54,8 @@ const keyboardHandler = ref('ace/keyboard/vscode')
 
 
 const currentTheme = inject('color-theme') as Ref<string>
+const themeList = inject('theme-list') as any
+const currentThemeIndex = inject('current-theme') as Ref<number>
 const availableThemes = {
   light: 'ace/theme/xcode',
   dark: 'ace/theme/twilight',
@@ -180,8 +182,9 @@ onMounted(() => nextTick(async () => {
       saveCue()
     }
   });
-  const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
-  editor.setTheme(initialTheme)
+  //const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
+  /*const initialTheme =(currentTheme.value.match('light') === null || themeList.value[currentThemeIndex.value].isLight === false) ? 'ace/theme/twilight' : 'ace/theme/xcode'
+  editor.setTheme(initialTheme)*/
   editor.setOption('fontFamily', 'Iosevka MakeShift')
   // editor.setOption('fontSpacing', 'Iosevka MakeShift')
   editor.setFontSize(15);
@@ -303,13 +306,38 @@ function fitCodebox() {
   }
 }
 
-watch(
+/*watch(
   () => currentTheme.value,
   (newTheme) => {
+    console.log(newTheme.match('light'))
     if (newTheme.match('light') !== null) {
+      console.log("this is light part 2")
+      editor.setTheme(availableThemes.light)
+    } else {
+      console.log("this is dark part 2")
+      editor.setTheme(availableThemes.dark)
+    }
+  }
+)*/
+
+watch(
+  () => [currentTheme.value, currentThemeIndex.value],
+  ([newTheme, newThemeIndex]) => {
+    if(typeof newTheme === 'string' && typeof newThemeIndex === 'number'){
+      console.log(newTheme)
+      console.log(newThemeIndex)
+      console.log(newTheme.match('light'))
+    if (newTheme.match('light') !== null) {
+      console.log("this is light pt2")
+      editor.setTheme(availableThemes.light)
+    } else if(newTheme.match('dark') !== null) {
+      console.log("this is dark pt2")
+      editor.setTheme(availableThemes.dark)
+    } else if(themeList.value[newThemeIndex].isLight !== false){
       editor.setTheme(availableThemes.light)
     } else {
       editor.setTheme(availableThemes.dark)
+    }
     }
   }
 )

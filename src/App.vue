@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import './styles/colors.css'
+//import './styles/colors.css'
 import './styles/fonts.css'
 import 'splitpanes/dist/splitpanes.css'
 
@@ -31,6 +31,8 @@ const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
 const colorTheme = inject('color-theme') as Ref<string>
+const themeList = inject('theme-list') as any
+const currentThemeIndex = inject('current-theme') as Ref<number>
 
 colorTheme.value = 'colorblind-light-theme'
 
@@ -91,10 +93,41 @@ nextTick(() => {
 	// topPaneHeight.value = 70
 })
 
+const selectedTheme = ref()
+function getClass(input:any) {
+	if(typeof input === "number"){
+		let variableStyle = "style."+themeList.value[input].cssClass
+		let styleElement:any = document.querySelector(variableStyle);
+
+		if (styleElement) {
+  		// If the styleTag exists, remove it
+  		styleElement.parentNode.removeChild(styleElement);
+		} else {
+			console.log("nothing")
+		}
+		styleElement = document.createElement('style')
+		styleElement.innerHTML = themeList.value[input].cssRaw
+		styleElement.classList.add(themeList.value[input].cssClass)
+		document.head.appendChild(styleElement)
+		colorTheme.value=themeList.value[input].cssClass
+		currentThemeIndex.value=input
+		console.log(currentThemeIndex.value)
+		console.log(`themelist ${themeList.value[input].cssRaw}`)
+		console.log(colorTheme.value)
+		console.log("done")
+		return colorTheme.value
+	} else {
+		colorTheme.value=input
+		console.log("1done")
+		return colorTheme.value
+	}
+}
+
 </script>
 
 <template>
-	<div :class="[colorTheme, 'bg-bg', 'color-text']">
+	<div :class="[getClass(selectedTheme),'bg-bg', 'color-text']"
+	>
 		<div
 			id='font-size-monitor-div'
 			ref="FontSizeMonitorDiv"
@@ -104,17 +137,18 @@ nextTick(() => {
 		</div>
 		<select
 			name="color-theme-selector"
-			v-model="colorTheme"
+			v-model="selectedTheme"
 		>
-			<option value="light-theme">Light</option>
 			<option value="dark-theme">Dark</option>
+			<option value="light-theme">Light</option>
+			<option v-for="(theme, index) in themeList" :value="index">{{ theme.cssClass }}</option>
 		</select>
 		<div :class="['width-full']">
 			<TesterButton />
 		</div>
 		<TestInterface />
-		<BlocklyBox />
-		<!-- <SplitPanelVert
+		<!-- <BlocklyBox /> -->
+		<SplitPanelVert
 		 :height="clientSize.height - remToPx(2.5)"
 		 :topPanelHeightPercent="70"
 		 :margin="8"
@@ -151,7 +185,7 @@ nextTick(() => {
 			<template #bottom>
 				<Terminal :panelHeight="bottomPanelHeight" />
 			</template>
-		</SplitPanelVert> -->
+		</SplitPanelVert>
 		<BottomBar />
 	</div>
 </template>

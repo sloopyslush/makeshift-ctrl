@@ -15,6 +15,8 @@ export declare const ctrlIpcApi: {
         allCues: string;
         cueById: string;
         cueByFolder: string;
+        defaultTheme: string;
+        themeFromPath: string;
     };
     set: {
         cueFile: string;

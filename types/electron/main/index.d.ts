@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import { MakeShiftPortFingerprint, MakeShiftDeviceEvents, MakeShiftSerialEvents } from '@eos-makeshift/serial';
 import { saveCueFile, CueId, CueMap, Cue } from './cues';
+import { Theme } from './themes';
 export type DeviceId = string;
 export type MakeShiftEvent = string;
 export type EventCueMap = Map<MakeShiftEvent, Cue>;
@@ -60,6 +61,8 @@ declare const ipcMainGetHandler: {
     cueById: (id: any) => Promise<Cue>;
     cueByFolder: (folder: any) => Promise<CueMap>;
     clientSize: () => Promise<Size>;
+    defaultTheme: () => Promise<Theme>;
+    themeFromPath: (path: string) => Promise<Theme>;
 };
 /**
  * IPC Set API

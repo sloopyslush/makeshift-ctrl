@@ -115,5 +115,23 @@ export async function checkThemeBrightness(themeCss: string) {
   log.info(`Checking theme brightness...`)
   log.debug(`bgLine: ${bgLine}`)
 
-  return false
+  const rgbBackgroundColor = bgLine[0]
+  const rbgBackgroundColorArr = rgbBackgroundColor
+                                .substring(rgbBackgroundColor.indexOf(":")+1, rgbBackgroundColor.indexOf(";"))
+                                .trim()
+                                .split(" ")
+                                .map((component:any) => {
+                                      const rgbComponent = component / 255
+                                      return (rgbComponent <= 0.03928) ? (rgbComponent / 12.92) : ((rgbComponent + 0.055) / 1.055) ** 2.4
+                                    })
+  
+  const backgroundColorLuminance = 0.2126 * rbgBackgroundColorArr[0] + 0.7152 * rbgBackgroundColorArr[1] + 0.0722 * rbgBackgroundColorArr[2]
+  const contrastRatio = ((backgroundColorLuminance + 0.05) / 1.05)
+
+  //compares the bg color with the color white
+  if(contrastRatio>0.5){
+      return true
+  } else {
+      return false
+  }
 }

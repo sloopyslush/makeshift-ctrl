@@ -33,6 +33,8 @@ const cueRoot: Folder = {
 
   const state = {
     colorTheme: ref(`light-theme`) as Ref<string>,
+    themeList: ref([]),
+    currentTheme: ref(0) as Ref<number>,
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
@@ -110,6 +112,8 @@ const cueRoot: Folder = {
     .provide('makeshift-serial-events', Constants.SerialEvents)
     .provide('makeshift-events-flat', Constants.EventsList)
     .provide('color-theme', state.colorTheme)
+    .provide(`theme-list`, state.themeList)
+    .provide(`current-theme`, state.currentTheme)
     .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('client-size', state.clientSize)
     .provide('cues', state.cues)
