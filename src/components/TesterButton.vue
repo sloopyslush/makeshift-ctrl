@@ -91,8 +91,7 @@ const selectedTheme=ref()
 }*/
 
 async function handleGetThemeFromPath(path: string) {
-  const themeResponse = makeshiftApi.get.themeFromPath(path)
-  console.log(themeResponse)
+  makeshiftApi.get.themeFromPath(path)
 }
 </script>
 
@@ -109,7 +108,7 @@ async function handleGetThemeFromPath(path: string) {
       get theme from path
     </button>
     <button
-      @click="makeshiftApi.test()"
+      @click="makeshiftApi.test('asdf')"
       class="inline mx-3"
     >
       call test()

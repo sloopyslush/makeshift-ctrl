@@ -1,12 +1,16 @@
-import { createApp, Ref, ref, watch } from 'vue'
-import { customAlphabet } from 'nanoid'
+import { createApp, Ref, ref, computed, watch, ComputedRef } from 'vue'
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/cues'
 import App from './App.vue'
 import { Size } from 'types/electron/main'
-
-const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
+import { SimplePopup } from './composables/popup'
+import { Selected } from 'blockly/core/events/events_selected'
+export type SensorEventDetails = {
+  sensorId: number,
+  sensorType: string,
+  eventType: string,
+}
 const dcDevice: MakeShiftPortFingerprint = {
   devicePath: '',
   portId: '',
@@ -16,7 +20,7 @@ const dcDevice: MakeShiftPortFingerprint = {
 const cueRoot: Folder = {
   name: '.',
   subFolders: [],
-  cueFiles: [],
+  files: [],
 };
 
 // Wrap initial state loading in IIFE to ensure async calls return with
@@ -43,6 +47,7 @@ const cueRoot: Folder = {
     selectedEvent: ref('sensor-0-dial-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
+    activePopups: ref<SimplePopup[]>([]),
   }
 
   console.log(Constants.HardwareDescriptors)
@@ -62,7 +67,7 @@ const cueRoot: Folder = {
   })
 
   window.MakeShiftCtrl.onEv.device.disconnected((garb: any, dcfp: MakeShiftPortFingerprint) => {
-    state.connectedDevices.value = state.connectedDevices.value.filter((currfp) => {
+    state.connectedDevices.value = state.connectedDevices.value.filter((currfp: MakeShiftPortFingerprint) => {
       return (currfp.deviceSerial !== dcfp.deviceSerial || currfp.devicePath !== dcfp.devicePath)
     })
     if (state.connectedDevices.value.length === 0) {
@@ -70,7 +75,7 @@ const cueRoot: Folder = {
     }
   })
 
-  state.cues.value.forEach((cue) => {
+  state.cues.value.forEach((cue: Cue) => {
     // console.log(cue.id.split('/'))
     addCueToFolderList(cue)
   })
@@ -122,7 +127,7 @@ const cueRoot: Folder = {
     .provide('makeshift-logRank', state.logRank)
     .provide('selected-event', state.selectedEvent)
     .provide('current-device', state.currentDevice)
-    .provide('nanoid', nanoid)
+    .provide('popups', state.activePopups)
     .mount('#app')
     .$nextTick(() => {
       postMessage({ payload: 'removeLoading' }, '*')
@@ -133,11 +138,14 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
   // console.log(currFolder)
   const topLevel = relativePath.shift()
   if (typeof topLevel === 'undefined') {
-    const cueIdx = currFolder.cueFiles.findIndex((c) => { return c.id === cue.id })
+    const cueIdx = currFolder.files.findIndex((c) => { return c.id === cue.id })
     if (cueIdx === -1) {
-      currFolder.cueFiles.push(cue)
+      currFolder.files.push(cue)
+      currFolder.files.sort((a, b) => {
+        return (a.name >= b.name) ? 1 : -1
+      })
     } else {
-      currFolder.cueFiles[cueIdx] = cue
+      currFolder.files[cueIdx] = cue
     }
   } else {
     // console.log(`tl: ${topLevel} | rp: ${relativePath}`)
@@ -150,7 +158,7 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
       currFolder.subFolders.push({
         name: topLevel,
         subFolders: [],
-        cueFiles: []
+        files: []
       })
       folderIdx = currFolder.subFolders.length - 1
     }
@@ -161,7 +169,7 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
 function extractCue(currFolder: Folder, relativePath: string[]) {
   const topLevel = relativePath.shift()
   if (relativePath.length === 0) {
-    currFolder.cueFiles = currFolder.cueFiles.filter((f) => {
+    currFolder.files = currFolder.files.filter((f) => {
       return f.file !== topLevel
     })
   } else {
@@ -175,8 +183,14 @@ function extractCue(currFolder: Folder, relativePath: string[]) {
   }
 }
 
+type WorkspaceFingerprint = {
+  id: string,
+  [key: string]: any
+}
+type FileType = Cue | WorkspaceFingerprint
+
 export type Folder = {
   name: string,
   subFolders: Folder[]
-  cueFiles: Cue[],
+  files: Cue[],
 }
